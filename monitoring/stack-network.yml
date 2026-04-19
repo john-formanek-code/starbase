@@ -1,0 +1,146 @@
+name: network
+services:
+  # DNS - Ad blocking
+  pihole:
+    image: pihole/pihole:latest
+    container_name: pihole
+    environment:
+      - TZ=Europe/Prague
+    volumes:
+      - ./pihole/etc-pihole:/etc/pihole
+      - ./pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+    networks: [vlan10_mgmt, proxy]
+    restart: unless-stopped
+
+  pihole_exporter:
+    image: ekofr/pihole-exporter:latest
+    container_name: pihole_exporter
+    environment:
+      - PIHOLE_HOSTNAME=pihole
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 64M
+    networks: [monitoring]
+    restart: unless-stopped
+
+  # VPN - Remote Access
+  wireguard:
+    image: lscr.io/linuxserver/wireguard:latest
+    container_name: wireguard
+    cap_add: [NET_ADMIN, SYS_MODULE]
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Prague
+    volumes:
+      - ./wireguard/config:/config
+      - /lib/modules:/lib/modules
+    ports:
+      - "51820:51820/udp"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+    networks: [vlan10_mgmt]
+    restart: unless-stopped
+
+  wireguard_exporter:
+    image: mindflavor/prometheus-wireguard-exporter:latest
+    container_name: wireguard_exporter
+    cap_add: [NET_ADMIN]
+    volumes:
+      - /lib/modules:/lib/modules
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 64M
+    networks: [monitoring]
+    restart: unless-stopped
+
+  # Traffic Analysis
+  ntopng:
+    image: ntop/ntopng:latest
+    container_name: ntopng
+    command: ntopng -i eth0
+    ports:
+      - "3003:3003"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    networks: [vlan10_mgmt, proxy]
+    restart: unless-stopped
+
+  # IPAM - Netbox
+  netbox-db:
+    image: postgres:15-alpine
+    container_name: netbox-db
+    environment:
+      - POSTGRES_DB=netbox
+      - POSTGRES_USER=netbox
+      - POSTGRES_PASSWORD=netbox_db_pass
+    volumes:
+      - ./netbox/db:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+    networks: [database]
+    restart: unless-stopped
+
+  netbox-redis:
+    image: redis:alpine
+    container_name: netbox-redis
+    volumes:
+      - ./netbox/redis:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+    networks: [database]
+    restart: unless-stopped
+
+  netbox:
+    image: netboxcommunity/netbox:latest
+    container_name: netbox
+    environment:
+      - DB_HOST=netbox-db
+      - DB_NAME=netbox
+      - DB_USER=netbox
+      - DB_PASSWORD=netbox_db_pass
+      - REDIS_HOST=netbox-redis
+      - SECRET_KEY=super_secret_netbox_key
+    ports:
+      - "8095:8080"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    depends_on:
+      - netbox-db
+      - netbox-redis
+    networks: [proxy, database]
+    restart: unless-stopped
+
+networks:
+  vlan10_mgmt:
+    external: true
+  proxy:
+    external: true
+  database:
+    external: true
+  monitoring:
+    external: true

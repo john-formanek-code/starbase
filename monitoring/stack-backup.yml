@@ -1,0 +1,26 @@
+name: backup
+services:
+  duplicati:
+    image: lscr.io/linuxserver/duplicati:latest
+    container_name: duplicati
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Prague
+    volumes:
+      - ./duplicati/config:/config
+      - ./duplicati/backups:/backups
+      - /home/formijan/projects/homelab:/source
+    ports:
+      - "8200:8200"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+    networks: [proxy]
+
+networks:
+  proxy:
+    external: true

@@ -1,0 +1,40 @@
+services:
+  fjtg-ui:
+    build:
+      context: ../fjtg-ui
+      dockerfile: Dockerfile
+    container_name: fjtg-ui
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+    networks:
+      - proxy
+
+  fjtg-api:
+    build:
+      context: ../fjtg-api
+      dockerfile: Dockerfile
+    container_name: fjtg-api
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/formijan/projects/homelab:/home/formijan/projects/homelab
+    # Overwrite index.js path mapping internally if needed, 
+    # but the simplest is to keep paths relative to the project root
+    working_dir: /home/formijan/projects/homelab/fjtg-api
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
