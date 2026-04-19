@@ -10,7 +10,7 @@ services:
     volumes:
       - ./duplicati/config:/config
       - ./duplicati/backups:/backups
-      - /home/formijan/projects/homelab:/source
+      - /home/formijan/projects/starbase:/source
     ports:
       - "8200:8200"
     restart: unless-stopped

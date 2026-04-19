@@ -1,6 +1,6 @@
-# 🛡️ Homelab OS: The 12-Pillar Enterprise-Grade Architecture
+# 🛡️ starbase OS: The 12-Pillar Enterprise-Grade Architecture
 
-This project implements a fully modular, enterprise-grade homelab environment divided into 12 functional pillars. Each pillar is isolated into its own Docker Compose stack, ensuring maximum stability, security, and scalability.
+This project implements a fully modular, enterprise-grade starbase environment divided into 12 functional pillars. Each pillar is isolated into its own Docker Compose stack, ensuring maximum stability, security, and scalability.
 
 ---
 
@@ -72,7 +72,7 @@ Use the provided `lab.sh` script to manage the entire infrastructure.
 ## 📂 Directory Structure
 
 ```text
-/homelab/
+/starbase/
 ├── monitoring/             # Main working directory
 │   ├── config/             # Modular config files (Prometheus, Loki, etc.)
 │   ├── stack-*.yml         # The 12 pillar compose files

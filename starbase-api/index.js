@@ -23,7 +23,7 @@ const addEvent = (msg, type = 'info') => {
 };
 
 // Log initial boot
-addEvent("FJTG_OS KERNEL_BOOT_SUCCESS", "success");
+addEvent("starbase_OS KERNEL_BOOT_SUCCESS", "success");
 
 app.get('/api/events', (req, res) => res.json(systemEvents));
 
@@ -172,5 +172,5 @@ app.get('/api/pillars/:id/stats', (req, res) => {
 
 const PORT = 3001;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`FJTG System API running on port ${PORT}`);
+  console.log(`starbase System API running on port ${PORT}`);
 });

@@ -1,9 +1,9 @@
 services:
-  fjtg-ui:
+  starbase-ui:
     build:
-      context: ../fjtg-ui
+      context: ../starbase-ui
       dockerfile: Dockerfile
-    container_name: fjtg-ui
+    container_name: starbase-ui
     restart: unless-stopped
     ports:
       - "80:80"
@@ -15,18 +15,18 @@ services:
     networks:
       - proxy
 
-  fjtg-api:
+  starbase-api:
     build:
-      context: ../fjtg-api
+      context: ../starbase-api
       dockerfile: Dockerfile
-    container_name: fjtg-api
+    container_name: starbase-api
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /home/formijan/projects/homelab:/home/formijan/projects/homelab
+      - /home/formijan/projects/starbase:/home/formijan/projects/starbase
     # Overwrite index.js path mapping internally if needed, 
     # but the simplest is to keep paths relative to the project root
-    working_dir: /home/formijan/projects/homelab/fjtg-api
+    working_dir: /home/formijan/projects/starbase/starbase-api
     deploy:
       resources:
         limits:

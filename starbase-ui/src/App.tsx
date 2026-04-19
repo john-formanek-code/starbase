@@ -59,7 +59,7 @@ const Sidebar = ({ sysInfo }: any) => (
     <div style={{ marginBottom: '50px' }}>
       <Link to="/" style={{ textDecoration: 'none' }}>
         <h1 className="glitch-text" style={{ fontSize: '28px', color: 'var(--accent)', marginBottom: '10px' }}>
-          FJTG // OS
+          starbase // OS
         </h1>
         <div style={{ fontSize: '10px', color: 'var(--text-dim)', letterSpacing: '3px' }}>v5.2.0 // TITAN_GRADE</div>
       </Link>

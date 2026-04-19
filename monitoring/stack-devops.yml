@@ -8,7 +8,7 @@ services:
       - WOODPECKER_HOST=http://localhost:8000
       - WOODPECKER_GITEA=true
       - WOODPECKER_GITEA_URL=http://gitea:3000
-      - WOODPECKER_GITEA_CLIENT=fjtg_admin
+      - WOODPECKER_GITEA_CLIENT=starbase_admin
       - WOODPECKER_GITEA_SECRET=af497ed1d3782312a8076e59f6bead0d
       - WOODPECKER_AGENT_SECRET=super_secret_agent_password
     volumes:
