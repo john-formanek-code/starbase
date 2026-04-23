@@ -1,0 +1,172 @@
+name: core
+services:
+  # Identity Management
+  authentik-db:
+    image: postgres:15-alpine
+    container_name: authentik-db
+    environment:
+      - POSTGRES_PASSWORD=${AUTHENTIK_POSTGRES_PASSWORD}
+      - POSTGRES_USER=authentik
+      - POSTGRES_DB=authentik
+    volumes:
+      - ../../data/volumes/authentik/db:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+    networks: [database]
+    restart: unless-stopped
+
+  authentik-redis:
+    image: redis:alpine
+    container_name: authentik-redis
+    volumes:
+      - ../../data/volumes/authentik/redis:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+    networks: [database]
+    restart: unless-stopped
+
+  authentik-server:
+    image: ghcr.io/goauthentik/server:latest
+    container_name: authentik-server
+    command: server
+    environment:
+      - AUTHENTIK_REDIS__HOST=authentik-redis
+      - AUTHENTIK_POSTGRESQL__HOST=authentik-db
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - AUTHENTIK_POSTGRESQL__PASSWORD=${AUTHENTIK_POSTGRES_PASSWORD}
+      - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
+    volumes:
+      - ../../data/volumes/authentik/media:/media
+      - ../../data/volumes/authentik/templates:/templates
+    ports:
+      - "9002:9000"
+      - "9443:9443"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    networks: [identity, proxy, database]
+    restart: unless-stopped
+
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:latest
+    container_name: authentik-worker
+    command: worker
+    environment:
+      - AUTHENTIK_REDIS__HOST=authentik-redis
+      - AUTHENTIK_POSTGRESQL__HOST=authentik-db
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - AUTHENTIK_POSTGRESQL__PASSWORD=${AUTHENTIK_POSTGRES_PASSWORD}
+      - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../../data/volumes/authentik/media:/media
+      - ../../data/volumes/authentik/certs:/certs
+      - ../../data/volumes/authentik/custom-templates:/templates
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    networks: [identity, database]
+    restart: unless-stopped
+
+  # Git Server
+  gitea:
+    image: gitea/gitea:latest
+    container_name: gitea
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+    volumes:
+      - ../../data/volumes/gitea/data:/data
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "3004:3000"
+      - "2222:22"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    networks: [proxy, vlan10_mgmt]
+    restart: unless-stopped
+
+  # VS Code Server
+  code-server:
+    image: lscr.io/linuxserver/code-server:latest
+    container_name: code-server
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Prague
+    volumes:
+      - ../../data/volumes/code-server/config:/config
+      - /home/formijan/projects:/projects
+    ports:
+      - "8446:8443"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    networks: [proxy]
+    restart: unless-stopped
+
+  # Uptime Kuma
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    volumes:
+      - ../../data/volumes/uptime-kuma:/app/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+    networks: [monitoring, proxy]
+    restart: unless-stopped
+
+  # Ntfy - Notification service
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    container_name: ntfy
+    command: serve
+    volumes:
+      - ../../data/volumes/ntfy/cache:/var/cache/ntfy
+      - ../../data/volumes/ntfy/etc:/etc/ntfy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+    networks: [proxy, vlan10_mgmt]
+    restart: unless-stopped
+
+networks:
+  identity:
+    external: true
+  proxy:
+    external: true
+  monitoring:
+    external: true
+  database:
+    external: true
+  vlan10_mgmt:
+    external: true
+
+volumes:
+  authentik-db:
+  authentik-redis:
+  redis-data:
+  uptime-kuma:
+  ntfy-data:

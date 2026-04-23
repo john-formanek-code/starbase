@@ -1,0 +1,43 @@
+services:
+  starbase-ui:
+    build:
+      context: ../../apps/ui
+      dockerfile: Dockerfile
+    container_name: starbase-ui
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+    networks:
+      - proxy
+
+  starbase-api:
+    build:
+      context: ../../apps/api
+      dockerfile: Dockerfile
+    container_name: starbase-api
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/formijan/projects/homelab:/app/host # Mount full project root to /app/host
+    environment:
+      - HOST_ROOT=/app/host
+    working_dir: /app/host/apps/api
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+    networks:
+      - proxy
+      - monitoring # Bridge to scrape exporters
+
+networks:
+  proxy:
+    external: true
+  monitoring:
+    external: true

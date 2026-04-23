@@ -1,0 +1,39 @@
+name: ai
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    volumes:
+      - ../../data/volumes/ollama/data:/root/.ollama
+    ports:
+      - "11435:11434"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+    networks: [proxy]
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+    volumes:
+      - ../../data/volumes/open-webui/data:/app/backend/data
+    ports:
+      - "3005:8080"
+    depends_on:
+      - ollama
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+    networks: [proxy]
+
+networks:
+  proxy:
+    external: true

@@ -1,0 +1,43 @@
+name: devops
+services:
+  woodpecker-server:
+    image: woodpeckerci/woodpecker-server:latest
+    container_name: woodpecker-server
+    restart: unless-stopped
+    environment:
+      - WOODPECKER_HOST=http://localhost:8000
+      - WOODPECKER_GITEA=true
+      - WOODPECKER_GITEA_URL=http://gitea:3000
+      - WOODPECKER_GITEA_CLIENT=starbase_admin
+      - WOODPECKER_GITEA_SECRET=af497ed1d3782312a8076e59f6bead0d
+      - WOODPECKER_AGENT_SECRET=super_secret_agent_password
+    volumes:
+      - ../../data/volumes/woodpecker/server-data:/var/lib/woodpecker/
+    ports:
+      - "8000:8000"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+    networks: [proxy]
+
+  woodpecker-agent:
+    image: woodpeckerci/woodpecker-agent:latest
+    container_name: woodpecker-agent
+    restart: unless-stopped
+    environment:
+      - WOODPECKER_SERVER=woodpecker-server:9000
+      - WOODPECKER_AGENT_SECRET=super_secret_agent_password
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+    networks: [proxy]
+
+networks:
+  proxy:
+    external: true

@@ -1,0 +1,53 @@
+services:
+  # Recursive DNS - No more upstream logs
+  unbound:
+    image: mvance/unbound:latest
+    container_name: unbound
+    cap_add: [NET_ADMIN]
+    networks:
+      vlan10_mgmt:
+    restart: unless-stopped
+
+  # Load Balancer - The "Dispatcher"
+  haproxy:
+    image: haproxy:latest
+    container_name: haproxy
+    volumes:
+      - ../../data/volumes/haproxy:/usr/local/etc/haproxy:ro
+    networks: [vlan60_dmz, vlan20_srv]
+    restart: unless-stopped
+
+  # Latency Monitoring - Tracking "Where the delay is"
+  smokeping:
+    image: lscr.io/linuxserver/smokeping:latest
+    container_name: smokeping
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Prague
+    volumes:
+      - ../../data/volumes/smokeping/config:/config
+      - ../../data/volumes/smokeping/data:/data
+    ports:
+      - "8098:80"
+    networks: [vlan10_mgmt]
+    restart: unless-stopped
+
+  # Dynamic Routing Simulator (OSPF/BGP)
+  frr:
+    image: frrouting/frr:latest
+    container_name: frr
+    cap_add: [NET_ADMIN, SYS_ADMIN]
+    networks: [vlan10_mgmt, vlan20_srv, vlan30_clients]
+    restart: unless-stopped
+
+  # Network Monitoring (SNMP based)
+  librenms:
+    image: librenms/librenms:latest
+    container_name: librenms
+    volumes:
+      - ../../data/volumes/librenms:/data
+    ports:
+      - "8097:80"
+    networks: [vlan10_mgmt]
+    restart: unless-stopped
