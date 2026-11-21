@@ -111,7 +111,7 @@ services:
       - TZ=Europe/Prague
     volumes:
       - ../../data/volumes/code-server/config:/config
-      - /home/formijan/projects:/projects
+      - ${STARBASE_PROJECTS_DIR}:/projects
     ports:
       - "8446:8443"
     deploy:

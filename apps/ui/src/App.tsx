@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type MouseEvent as ReactMouseEvent } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { 
   Activity,
@@ -11,12 +11,13 @@ import {
 import Sidebar from './components/Sidebar';
 import MatrixGrid from './components/MatrixGrid';
 import PillarDetail from './components/PillarDetail';
+import type { PillarStatus, SysInfo, SystemEvent } from './constants';
 
 const DashboardContainer = () => {
-  const [statuses, setStatuses] = useState<Record<string, {running: boolean, healthy: boolean}>>({});
+  const [statuses, setStatuses] = useState<Record<string, PillarStatus>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
-  const [sysInfo, setSysInfo] = useState<any>(null);
-  const [events, setEvents] = useState<any[]>([]);
+  const [sysInfo, setSysInfo] = useState<SysInfo | null>(null);
+  const [events, setEvents] = useState<SystemEvent[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [alert, setAlert] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -48,12 +49,15 @@ const DashboardContainer = () => {
   };
 
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 5000);
-    return () => clearInterval(interval);
+    const kick = window.setTimeout(() => { void fetchData(); }, 0);
+    const interval = window.setInterval(() => { void fetchData(); }, 5000);
+    return () => {
+      window.clearTimeout(kick);
+      window.clearInterval(interval);
+    };
   }, []);
 
-  const togglePillar = async (e: any, id: number, currentStatus: boolean) => {
+  const togglePillar = async (e: ReactMouseEvent | null, id: number, currentStatus: boolean) => {
     if (e) e.stopPropagation();
     const action = currentStatus ? 'down' : 'up';
     setLoading(prev => ({ ...prev, [id]: true }));
@@ -91,7 +95,7 @@ const DashboardContainer = () => {
   const integrityColor = runningCount === 12 ? '#00ffff' : runningCount > 6 ? '#00ff00' : runningCount > 0 ? '#ffaa00' : '#ff0000';
 
   return (
-    <div style={{ display: 'flex' }}>
+    <div className="shell">
       <Sidebar sysInfo={sysInfo} />
       <div className="scanline"></div>
       
@@ -106,7 +110,7 @@ const DashboardContainer = () => {
         </div>
       )}
 
-      <main style={{ marginLeft: '280px', padding: '40px', width: 'calc(100% - 280px)', minHeight: '100vh' }}>
+      <main className="stage">
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px', borderBottom: '1px solid var(--border)', paddingBottom: '25px' }}>
           <div>
             <div style={{ color: 'var(--accent)', fontSize: '10px', fontWeight: 800, letterSpacing: '4px', marginBottom: '8px' }}>CORE_V7.0_INTELLIGENCE</div>
@@ -118,6 +122,9 @@ const DashboardContainer = () => {
               <div style={{ color: 'var(--text-dim)', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Zap size={12} color="var(--accent)" /> LOAD: <span style={{color: 'var(--text-main)'}}>{sysInfo?.cpu || '0%'}</span>
               </div>
+              {sysInfo?.mode === 'demo' && (
+                <div style={{ color: '#ffaa00', fontSize: '10px', letterSpacing: '1px', fontWeight: 800 }}>DEMO_MODE</div>
+              )}
               {sysInfo?.hog && sysInfo.hog !== "NONE" && (
                 <div style={{ color: '#ffaa00', fontSize: '10px', display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,170,0,0.1)', padding: '2px 8px', borderRadius: '2px' }}>
                   <Flame size={12} /> HOG: <span style={{fontWeight: 700}}>{sysInfo.hog.toUpperCase()}</span>

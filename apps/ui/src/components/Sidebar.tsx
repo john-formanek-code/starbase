@@ -1,13 +1,13 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Globe, Clock, Lightbulb, Flame } from 'lucide-react';
-import { PILLARS } from '../constants';
+import { PILLARS, type SysInfo } from '../constants';
 
 interface SidebarProps {
-  sysInfo: any;
+  sysInfo: SysInfo | null;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ sysInfo }) => {
+const Sidebar = ({ sysInfo }: SidebarProps) => {
   const ramUsage = parseInt(sysInfo?.ram || '0');
   const cpuUsage = parseInt(sysInfo?.cpu || '0');
 
@@ -18,7 +18,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sysInfo }) => {
   }, [ramUsage, cpuUsage]);
 
   return (
-    <aside style={{
+    <aside className="sidebar" style={{
       width: '280px',
       backgroundColor: 'var(--bg-nav)',
       borderRight: '1px solid var(--border)',

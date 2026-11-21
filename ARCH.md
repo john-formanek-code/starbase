@@ -9,10 +9,11 @@ A consolidated, production-grade Homelab Operating System.
     -   `api/`: Node.js Control Bridge (Docker Socket integration).
 -   **`/infra`**: The 12-Pillar Infrastructure.
     -   `compose/`: Standardized Docker Compose stacks for all 12 pillars.
-    -   `config/`: Service-specific configurations (Prometheus, Grafana, etc.).
+    -   `config/`: Service-specific configurations (Prometheus, Grafana, Loki, Alertmanager).
 -   **`/data`**: Persistent State (Excluded from Git).
     -   `volumes/`: All Docker container mount points.
 -   **`lab.sh`**: The Master Command Script. High-level orchestration for pillar ignition.
+-   **`.env`**: Local secrets. Copy from `.env.example`. Never commit it.
 
 ## 🚀 Pillars of Operations
 1.  **Virtualization** (`virt`) - Portainer

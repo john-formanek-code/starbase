@@ -88,7 +88,7 @@ services:
     environment:
       - POSTGRES_DB=netbox
       - POSTGRES_USER=netbox
-      - POSTGRES_PASSWORD=netbox_db_pass
+      - POSTGRES_PASSWORD=${NETBOX_DB_PASSWORD}
     volumes:
       - ../../data/volumes/netbox/db:/var/lib/postgresql/data
     deploy:
@@ -119,9 +119,9 @@ services:
       - DB_HOST=netbox-db
       - DB_NAME=netbox
       - DB_USER=netbox
-      - DB_PASSWORD=netbox_db_pass
+      - DB_PASSWORD=${NETBOX_DB_PASSWORD}
       - REDIS_HOST=netbox-redis
-      - SECRET_KEY=super_secret_netbox_key
+      - SECRET_KEY=${NETBOX_SECRET_KEY}
     ports:
       - "8095:8080"
     deploy:
