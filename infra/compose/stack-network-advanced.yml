@@ -51,3 +51,13 @@ services:
       - "8097:80"
     networks: [vlan10_mgmt]
     restart: unless-stopped
+
+networks:
+  vlan10_mgmt:
+    external: true
+  vlan20_srv:
+    external: true
+  vlan30_clients:
+    external: true
+  vlan60_dmz:
+    external: true

@@ -1,19 +1,19 @@
-import React, { useMemo } from 'react';
+import { useMemo, type MouseEvent as ReactMouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, Loader2, Power, Trash2, RefreshCw, Database } from 'lucide-react';
-import { PILLARS } from '../constants';
+import { PILLARS, type PillarStatus, type SystemEvent } from '../constants';
 import EventLog from './EventLog';
 
 interface MatrixGridProps {
-  statuses: Record<string, {running: boolean, healthy: boolean}>;
+  statuses: Record<string, PillarStatus>;
   loading: Record<string, boolean>;
-  togglePillar: (e: any, id: number, currentStatus: boolean) => Promise<void>;
+  togglePillar: (e: ReactMouseEvent | null, id: number, currentStatus: boolean) => Promise<void>;
   searchQuery: string;
-  events: any[];
+  events: SystemEvent[];
   executeMaintenance: (cmd: string) => Promise<void>;
 }
 
-const MatrixGrid: React.FC<MatrixGridProps> = ({ statuses, loading, togglePillar, searchQuery, events, executeMaintenance }) => {
+const MatrixGrid = ({ statuses, loading, togglePillar, searchQuery, events, executeMaintenance }: MatrixGridProps) => {
   const navigate = useNavigate();
   
   const filteredPillars = useMemo(() => {
@@ -24,7 +24,7 @@ const MatrixGrid: React.FC<MatrixGridProps> = ({ statuses, loading, togglePillar
   }, [searchQuery]);
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '3.2fr 1.2fr', gap: '30px' }}>
+    <div className="matrix">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
         <div style={{ display: 'flex', gap: '15px', backgroundColor: 'rgba(255,255,255,0.02)', padding: '15px', border: '1px solid var(--border)', borderRadius: '4px' }}>
           <button onClick={() => executeMaintenance('prune')} style={{ background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-dim)', padding: '8px 15px', fontSize: '10px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', borderRadius: '2px' }}>
@@ -38,11 +38,7 @@ const MatrixGrid: React.FC<MatrixGridProps> = ({ statuses, loading, togglePillar
           </button>
         </div>
 
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(3, 1fr)', 
-          gap: '20px' 
-        }}>
+        <div className="pillar-grid">
           {filteredPillars.map(p => {
             const state = statuses[p.id] || { running: false, healthy: false };
             const isLoading = loading[p.id];

@@ -1,22 +1,22 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, type MouseEvent as ReactMouseEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, Power, Terminal as TerminalIcon, FileCode, Layers, Settings2 } from 'lucide-react';
-import { PILLARS } from '../constants';
+import { PILLARS, type PillarPlugin, type PillarStatus } from '../constants';
 
 interface PillarDetailProps {
-  statuses: Record<string, {running: boolean, healthy: boolean}>;
+  statuses: Record<string, PillarStatus>;
   loading: Record<string, boolean>;
-  togglePillar: (e: any, id: number, currentStatus: boolean) => Promise<void>;
+  togglePillar: (e: ReactMouseEvent | null, id: number, currentStatus: boolean) => Promise<void>;
 }
 
-const PillarDetail: React.FC<PillarDetailProps> = ({ statuses, loading, togglePillar }) => {
+const PillarDetail = ({ statuses, loading, togglePillar }: PillarDetailProps) => {
   const { slug } = useParams();
   const pillar = PILLARS.find(p => p.slug === slug);
   const navigate = useNavigate();
   
   const [logs, setLogs] = useState<string>('AWAITING_TELEMETRY...');
   const [stats, setStats] = useState<string[]>([]);
-  const [plugin, setPlugin] = useState<any>(null);
+  const [plugin, setPlugin] = useState<PillarPlugin | null>(null);
   const [logFilter, setLogFilter] = useState<string>('ALL');
   const [activeTab, setActiveTab] = useState<'CONSOLE' | 'BLUEPRINT'>('CONSOLE');
   const [actionLoading, setActionLoading] = useState<boolean>(false);
@@ -31,37 +31,42 @@ const PillarDetail: React.FC<PillarDetailProps> = ({ statuses, loading, togglePi
 
   useEffect(() => {
     if (!pillar) return;
-    let interval: ReturnType<typeof setInterval>;
+    let interval: ReturnType<typeof setInterval> | undefined;
     
     const fetchDetails = async () => {
       try {
-        const [logsRes, statsRes, pluginRes] = await Promise.all([
+        const pluginRes = await fetch(`/api/pillars/${pillar.id}/plugin`);
+        const pluginData = await pluginRes.json() as PillarPlugin;
+        if (pluginData) setPlugin(pluginData);
+
+        if (!statuses[pillar.id]?.running) {
+          setLogs('PILLAR_OFFLINE');
+          setStats([]);
+          return;
+        }
+
+        const [logsRes, statsRes] = await Promise.all([
           fetch(`/api/pillars/${pillar.id}/logs`),
           fetch(`/api/pillars/${pillar.id}/stats`),
-          fetch(`/api/pillars/${pillar.id}/plugin`)
         ]);
-        const logsData = await logsRes.json();
-        const statsData = await statsRes.json();
-        const pluginData = await pluginRes.json();
-        
+        const logsData = await logsRes.json() as { logs?: string };
+        const statsData = await statsRes.json() as { stats?: string[] };
+
         if (logsData.logs) setLogs(logsData.logs);
         if (statsData.stats) setStats(statsData.stats);
-        if (pluginData) setPlugin(pluginData);
       } catch (e) {
         console.error("Failed to fetch pillar details", e);
       }
     };
 
+    fetchDetails();
     if (statuses[pillar.id]?.running) {
-      fetchDetails();
       interval = setInterval(fetchDetails, 3000);
-    } else {
-      setLogs('PILLAR_OFFLINE');
-      setStats([]);
-      setPlugin(null);
     }
 
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [slug, pillar, statuses]);
 
   const runCommand = async (command: string) => {
@@ -80,11 +85,6 @@ const PillarDetail: React.FC<PillarDetailProps> = ({ statuses, loading, togglePi
     }
   };
 
-  if (!pillar) return <div>Pillar not found</div>;
-
-  const state = statuses[pillar.id] || { running: false, healthy: false };
-  const isLoading = loading[pillar.id];
-
   const highlightedLogs = useMemo(() => {
     return logs.split('\n').map((line, i) => {
       const isError = /error|fatal|fail|critical/i.test(line);
@@ -98,6 +98,11 @@ const PillarDetail: React.FC<PillarDetailProps> = ({ statuses, loading, togglePi
       );
     }).filter(Boolean);
   }, [logs, logFilter]);
+
+  if (!pillar) return <div>Pillar not found</div>;
+
+  const state = statuses[pillar.id] || { running: false, healthy: false };
+  const isLoading = loading[pillar.id];
 
   return (
     <div className="fade-in">
@@ -121,7 +126,7 @@ const PillarDetail: React.FC<PillarDetailProps> = ({ statuses, loading, togglePi
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr', gap: '30px' }}>
+      <div className="detail-grid">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div style={{ backgroundColor: 'rgba(5,5,5,0.7)', border: '1px solid var(--border)', padding: '30px', backdropFilter: 'blur(10px)' }}>
             <div style={{ color: 'var(--accent)', fontSize: '10px', fontWeight: 800, letterSpacing: '2px', marginBottom: '20px' }}>[ TELEMETRY ]</div>
@@ -132,6 +137,14 @@ const PillarDetail: React.FC<PillarDetailProps> = ({ statuses, loading, togglePi
                     {state.running ? (state.healthy ? 'HEALTHY' : 'BOOTING') : 'OFFLINE'}
                 </div>
               </div>
+              {(plugin?.widgets || []).map((widget) => (
+                <div key={widget.label} style={{ borderLeft: '2px solid var(--border)', paddingLeft: '15px' }}>
+                  <div style={{ fontSize: '9px', color: 'var(--text-dim)' }}>{widget.label}</div>
+                  <div style={{ color: 'var(--text-main)', fontSize: '12px', fontWeight: 700, whiteSpace: 'pre-wrap' }}>
+                    {Array.isArray(widget.value) ? widget.value.join('\n') : widget.value}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 

@@ -1,11 +1,11 @@
-import React from 'react';
 import { List } from 'lucide-react';
+import type { SystemEvent } from '../constants';
 
 interface EventLogProps {
-  events: any[];
+  events: SystemEvent[];
 }
 
-const EventLog: React.FC<EventLogProps> = ({ events }) => (
+const EventLog = ({ events }: EventLogProps) => (
   <div style={{ 
     backgroundColor: 'rgba(5,5,5,0.8)', 
     border: '1px solid var(--border)', 
@@ -19,7 +19,7 @@ const EventLog: React.FC<EventLogProps> = ({ events }) => (
       <List size={14} /> SYSTEM_EVENT_BUFFER
     </div>
     <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }} className="terminal-scroll">
-      {events.map((ev: any, i: number) => (
+      {events.map((ev, i) => (
         <div key={i} style={{ fontSize: '11px', display: 'flex', gap: '10px', borderLeft: `2px solid ${ev.type === 'success' ? '#00ff00' : ev.type === 'error' ? '#ff0000' : 'var(--border)'}`, paddingLeft: '10px' }}>
           <span style={{ color: 'var(--text-dim)', opacity: 0.5 }}>[{ev.timestamp}]</span>
           <span style={{ color: ev.type === 'success' ? '#00ff00' : ev.type === 'error' ? '#ff0000' : 'var(--text-main)' }}>{ev.message}</span>

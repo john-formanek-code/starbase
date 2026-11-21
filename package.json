@@ -2,15 +2,24 @@
   "name": "starbase",
   "version": "1.0.0",
   "private": true,
-  "description": "Starbase // Titan Grade Homelab OS",
+  "description": "Homelab operating system: twelve Docker Compose pillars and a command center.",
+  "license": "MIT",
   "workspaces": [
     "apps/*"
   ],
   "scripts": {
-    "api:dev": "npm run dev -w apps/api",
-    "ui:dev": "npm run dev -w apps/ui",
-    "build": "npm run build --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present",
+    "dev": "concurrently -n api,ui -c red,cyan \"npm run dev -w api\" \"npm run dev -w ui\"",
+    "api:dev": "npm run dev -w api",
+    "ui:dev": "npm run dev -w ui",
+    "start": "npm run start -w api",
+    "build": "npm run build -w ui",
+    "lint": "npm run lint -w ui",
     "lab": "./lab.sh"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

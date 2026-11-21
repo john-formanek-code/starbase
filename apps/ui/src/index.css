@@ -71,3 +71,66 @@ button {
 ::-webkit-scrollbar-thumb { background: var(--accent); }
 
 .terminal-scroll::-webkit-scrollbar-thumb { background: #00ff00; }
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.stage {
+  margin-left: 280px;
+  padding: 40px;
+  width: calc(100% - 280px);
+  min-height: 100vh;
+}
+
+.matrix {
+  display: grid;
+  grid-template-columns: minmax(0, 3.2fr) minmax(220px, 1.2fr);
+  gap: 30px;
+}
+
+.pillar-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(0, 2.5fr);
+  gap: 30px;
+}
+
+@media (max-width: 960px) {
+  .shell {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 46vh;
+  }
+
+  .stage {
+    margin-left: 0;
+    width: 100%;
+    padding: 20px;
+  }
+
+  .matrix,
+  .detail-grid,
+  .pillar-grid {
+    grid-template-columns: 1fr;
+  }
+}

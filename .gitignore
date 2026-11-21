@@ -1,16 +1,18 @@
-# starbase // GIT_IGNORE
-
-# --- Persistent State (DATA) ---
-# We strictly exclude all container volumes
-data/volumes/
+# Persistent container state
 data/
 
-# --- Application Artifacts ---
+# Dependencies and build output
 node_modules/
 dist/
+
+# Local secrets
 .env
 *.log
 
-# --- System ---
+# Keys that must never be committed
+*.key
+*.pem
+
+# System
 .DS_Store
 Thumbs.db

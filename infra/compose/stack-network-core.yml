@@ -22,7 +22,7 @@ services:
     environment:
       - DOCKER_STEPCA_INIT_NAME=starbase-CA
       - DOCKER_STEPCA_INIT_PROVISIONER_NAME=admin
-      - DOCKER_STEPCA_INIT_PASSWORD=adminpassword
+      - DOCKER_STEPCA_INIT_PASSWORD=${STEPCA_INIT_PASSWORD}
       - DOCKER_STEPCA_INIT_SSH=true
     volumes:
       - ../../data/volumes/step-ca:/home/step

@@ -12,6 +12,7 @@ This platform is a consolidated, enterprise-grade Homelab OS. To maintain its "T
     -   Configs must be strictly isolated from persistent state.
 -   **`/data`**: Strictly for local persistent state.
     -   **NEVER** commit anything inside this folder.
+-   **Secrets**: Passwords belong in `.env` (see `.env.example`). Do not commit keys, tokens, or real credentials.
 
 ## 🛠️ Development Workflow
 

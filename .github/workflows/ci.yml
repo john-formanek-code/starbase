@@ -1,0 +1,34 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - name: API smoke
+        run: |
+          set -euo pipefail
+          STARBASE_DEMO=1 node apps/api/index.js &
+          pid=$!
+          trap 'kill $pid' EXIT
+          for _ in 1 2 3 4 5 6 7 8 9 10; do
+            if curl -sf http://127.0.0.1:3001/api/health; then
+              echo
+              curl -sf http://127.0.0.1:3001/api/status
+              echo
+              exit 0
+            fi
+            sleep 0.4
+          done
+          exit 1

@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     environment:
       - POSTGRES_USER=nextcloud
-      - POSTGRES_PASSWORD=nextcloud_db_pass
+      - POSTGRES_PASSWORD=${NEXTCLOUD_DB_PASSWORD}
       - POSTGRES_DB=nextcloud
     volumes:
       - ../../data/volumes/nextcloud/db:/var/lib/postgresql/data
@@ -47,7 +47,7 @@ services:
     environment:
       - POSTGRES_HOST=nextcloud-db
       - POSTGRES_USER=nextcloud
-      - POSTGRES_PASSWORD=nextcloud_db_pass
+      - POSTGRES_PASSWORD=${NEXTCLOUD_DB_PASSWORD}
       - POSTGRES_DB=nextcloud
       - REDIS_HOST=nextcloud-redis
       - NEXTCLOUD_TRUSTED_DOMAINS=localhost ${MY_DOMAIN}
